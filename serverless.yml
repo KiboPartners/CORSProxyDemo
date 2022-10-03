@@ -1,0 +1,25 @@
+service: search-cors-proxy
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-east-1
+
+functions: 
+  app:
+    handler: src/app.handler
+    events: 
+      - http: 
+          path: /
+          method: ANY
+          cors: true
+      - http: 
+          path: /{proxy+}
+          method: ANY
+          cors: true
+    
+package:
+  individually: false
+  include:
+    - node_modules/**
