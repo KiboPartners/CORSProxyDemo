@@ -44,7 +44,7 @@ let refreshAuth = function () {
         } else {
           accessToken = resp.body.access_token
           expireTime = now + resp.body.expires_in
-            console.log(accessToken)
+          console.log("new access token was fetched")
           resolve()
         }
       })
@@ -69,22 +69,19 @@ let corsProxyRoute = function (routeName, kiboRouteName) {
     res.status(200)
     res.send("")
   })
-  app.use(routeName, proxy(`${apiContext.apiHost}`, {
+  app.use(routeName, proxy(`https://${apiContext.apiHost}`, {
     // Rewrite the path to the Kibo path
     proxyReqPathResolver: function (req) {
       // the path is considered the portion of the url after the host, and including all query params
       // so we need to extract out the query string as we rewrite it and add it back in
       var parts = req.url.split('?');
       var queryString = parts[1];
-        console.log(kiboRouteName + (queryString ? '?' + queryString : ''));
       return kiboRouteName + (queryString ? '?' + queryString : '');
     },
     // Decorate request to Kibo with Bearer Auth
     proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
       return new Promise((resolve, reject) => {
         refreshAuth().then(function () {
-            console.log(Object.keys(proxyReqOpts));
-            console.log(proxyReqOpts);
           proxyReqOpts.headers.Authorization = `Bearer ${accessToken}`
           resolve(proxyReqOpts);
         }).catch(function (error) {
